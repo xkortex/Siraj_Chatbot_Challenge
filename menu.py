@@ -1,7 +1,8 @@
 class Choice(object):
-    def __init__(self, key_or_tup, name=None, callback=None):
+    def __init__(self, key_or_tup, name=None, callback=None, **kwargs):
+        self.kwargs = kwargs
         if isinstance(key_or_tup, Choice):
-            key = key_or_tup.key_or_tup
+            key = key_or_tup.key
             name = key_or_tup.name
             callback = key_or_tup.callback
         elif isinstance(key_or_tup, (tuple, list)):
@@ -26,11 +27,14 @@ class Choice(object):
 
     def __call__(self, *args, **kwargs):
         if self.callback is not None:
-            return self.callback(*args, **kwargs)
+            return self.callback(**self.kwargs)
 
 
 def return_foo():
     return 'foo'
+
+def meprint(foo='nofoo', bar='nobar'):
+    print(foo, '|', bar)
 
 
 class Quit(Choice):
@@ -47,14 +51,12 @@ class Menu(Choice):
     '''
 
     def __init__(self, key, name=None, choices=None, loop_on_invalid=False):
-        print(name + 'init')
         self.loop_on_invalid = loop_on_invalid
         self.quit = Quit()
         choices = [self.quit] if choices is None else [self.quit] + choices
         self.choices = choices
         self.name = name
         super().__init__(key_or_tup=key, name=name, callback=self)
-        print(name + 'super called')
 
     def get_item(self, key):
         lookup = {choice.key: choice for choice in self.choices}
@@ -88,16 +90,31 @@ class Menu(Choice):
     #             return None
     #         reply = int(reply)
     #         print(keystruct[reply])
-    #         print('------')
-    #         if isinstance(keystruct[reply], dict):
-    #             submenu= MenuPicker(keystruct[reply])
+    #         print('------')eply])
     #             return submenu.user_pick_menu()
     #         else:
     #             return keystruct[int(reply)]
 
     def __call__(self, *args, **kwargs):
+        #         if isinstance(keystruct[reply], dict):
+        #             submenu= MenuPicker(keystruct[r
         self.show_menu()
         r = self.user_pick_menu()
         choice = self.get_item(r)
         if choice is not None:
             return choice()
+
+
+"""
+Some examples:
+
+a = Choice('a', 'this is a choice', return_foo)
+b = Choice('b', 'this is another choice', lambda: print('choice b'))
+c = Choice('c', 'this is 3rd choice', return_foo)
+d = Choice('d', 'this is 4th choice', lambda: print('choice d'))
+e = Choice('e', 'print 666', meprint, foo='666')
+
+m = Menu('m', 'Menu 1', [a, b, e])
+m2 = Menu('5', 'Menu 2', [c, d, e, m], True)
+
+"""
