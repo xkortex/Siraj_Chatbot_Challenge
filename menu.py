@@ -47,6 +47,7 @@ class Quit(Choice):
 
     def __call__(self):
         print('Quitting')
+        return 'q'
 
 
 class Menu(Choice):
@@ -65,7 +66,7 @@ class Menu(Choice):
         """
         self.loop_on_invalid = loop_on_invalid
         self.quit = Quit()
-        choices = [self.quit] if choices is None else [self.quit] + choices
+        choices = [self.quit] if choices is None else [self.quit] + [Choice(c) for c in choices]
         self.choices = choices
         self.name = name
         super().__init__(key_or_tup=key, name=name, callback=self)
@@ -83,17 +84,17 @@ class Menu(Choice):
             return lookup[key]
         else:
             print('Invalid entry!')
-            if self.loop_on_invalid:
-                print('Enter menu selection: ')
-            else:
-                self.quit()
+            # if self.loop_on_invalid:
+            #     print('Enter menu selection: ')
+            # else:
+            #     self.quit()
 
     def show_menu(self):
         """
         Show the CLI selection menu
         :return:
         """
-        print('calling show_menu' + self.name)
+        # print('debug: calling show_menu' + self.name)
         print(self.name)
         for choice in self.choices:
             print(choice)

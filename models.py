@@ -6,6 +6,9 @@ from keras.layers.wrappers import Bidirectional
 
 class DeepMemNet:
     def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4):
+        self.vocab_size = vocab_size
+        self.story_maxlen = story_maxlen
+        self.query_maxlen = query_maxlen
         # placeholders
         input_sequence = Input((story_maxlen,))
         question = Input((query_maxlen,))
@@ -66,3 +69,11 @@ class DeepMemNet:
         model = Model([input_sequence, question], answer)
         model.compile(optimizer='rmsprop', loss='categorical_crossentropy',
                       metrics=['accuracy'])
+
+        self.model = model
+
+    def query(self, storyvec, queryvec):
+        storyvec = storyvec.reshape((-1, self.story_maxlen))
+        queryvec = queryvec.reshape((-1, self.query_maxlen))
+        ans = self.model.predict([storyvec, queryvec])
+        return ans

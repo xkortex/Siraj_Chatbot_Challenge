@@ -19,6 +19,69 @@ from keras.utils.data_utils import get_file
 from keras.preprocessing.sequence import pad_sequences
 
 
+def charvectorize(word, lower=True, setsize=128):
+    """
+    Convert a word (sequence of characters) to a n-vector of length setsize, using one-hot encoding
+    :param word: Word to vectorize
+    :param lower: Render word lowercase first before vectorizing
+    :param setsize: Size of character set
+    :return:
+    """
+    if lower:
+        word = word.lower()
+    vec = np.zeros(setsize, int)
+    for c in word:
+        vec[ord(c)] = 1
+    return vec
+
+
+def dist(v1, v2):
+    """
+    Euclidean distance
+    :param v1: Vector
+    :param v2: Vector or list of vectors
+    :return:
+    """
+    dv = v2 - v1
+    dv = dv ** 2
+    dv = np.sum(dv, axis=-1)
+    return dv ** 0.5
+
+
+def matchnocase(word, vocab):
+    """
+    Match a word to a vocabulary while ignoring case
+    :param word: Word to try to match
+    :param vocab: Valid vocabulary
+    :return:
+    """
+    lword = word.lower()
+    listvocab = list(vocab) # this trick catches dict and set in addition to list
+    lvocab = [w.lower() for w in listvocab]
+    if lword in lvocab:
+        return listvocab[lvocab.index(lword)]
+    return None
+
+
+def softmatch(word, vocab, lower=True, cutoff=2.):
+    """
+    Try to soft-match to catch various typos.
+    :param word: Word to try to match
+    :param vocab: Valid vocabulary
+    :param cutoff: Maximum distance (exclusive) to return match
+    :return: Corrected word
+    """
+    listvocab = list(vocab)
+    vw = charvectorize(word)
+    vecs = np.array([charvectorize(w, lower=lower) for w in listvocab])
+    print(vecs.shape)
+    distances = dist(vw, vecs)
+    idx = np.argmin(distances)
+    confidence = distances[idx]
+    if confidence < cutoff:
+        return vocab[idx]
+    return None
+
 def tokenize(sent):
     '''Return the tokens of a sentence including punctuation.
     >>> tokenize('Bob dropped the apple. Where is the apple?')
@@ -73,6 +136,8 @@ def get_stories(f, only_supporting=False, max_length=None):
 
 
 class BabiVectorizer:
+    allow_case_insensitive = True
+    allow_softmatch = False
     challenges = {
         # QA1 with 10,000 samples
         'single_supporting_fact_10k': 'tasks_1-20_v1-2/en-10k/qa1_single-supporting-fact_{}.txt',
@@ -106,7 +171,9 @@ class BabiVectorizer:
 
         word_idx = dict((c, i + 1) for i, c in enumerate(vocab))
         idx_word = {value: key for (key, value) in word_idx.items()}  # reverse lookup
-        idx_word.update({0: '~'})
+        idx_word.update({0: ''})
+
+        stories, queries, answers = zip(*test_stories)
 
         self._vocab = vocab
         self._vocab_size = vocab_size
@@ -116,9 +183,25 @@ class BabiVectorizer:
         self.query_maxlen = query_maxlen
         self._train_stories = train_stories
         self._test_stories = test_stories
+        self._lookup = {**word_idx, **idx_word} # combine
+        self.stories = stories
 
+    def deindex_sentence(self, ary, prettify=True):
+        sentence = []
+        for scalar in ary:
+            try:
+                word = self[scalar]
+                if word:
+                    sentence.append(word)
+            except KeyError:
+                print('Index not found in vocab: {}'.format(scalar))
 
-    def vectorize(self, datatype='train'):
+        sentence = ' '.join(sentence)
+        if prettify: # just tidy up a bit
+            sentence = sentence.replace(' . ', '.\n').replace(' .', '.')
+        return sentence
+
+    def vectorize_all(self, datatype='train'):
         if datatype == 'train':
             data = self.train_stories
         elif datatype == 'test':
@@ -141,6 +224,36 @@ class BabiVectorizer:
         return (pad_sequences(X, maxlen=self.story_maxlen),
                 pad_sequences(Xq, maxlen=self.query_maxlen), np.array(Y))
 
+
+    def vectorize_story(self, story):
+        story = [self[w] for w in story]
+        return pad_sequences([story], maxlen=self.story_maxlen) # note: this expects a sequence
+
+    def vectorize_query(self, query, verbose=False):
+        query = query.replace('?', ' ?')
+        query = query.split(' ')
+        exclude = ['', ' ']
+        query = [q for q in query if q not in exclude]
+        query = [self[q] for q in query]
+        if verbose: print('<v>Vectorize_query(): {}'.format(query))
+        queryvec = pad_sequences([query], maxlen=self.query_maxlen)
+        return queryvec
+
+    def devectorize_ans(self, ansvec, verbose=False):
+        idx = np.argmax(ansvec)
+        return self[idx]
+
+    def format_story(self, story):
+        print('-' * 30)
+        print(' '.join(story).replace(' . ', '.\n').replace(' .', '.'))
+        print('-' * 30)
+
+    def get_random_story(self, show=False):
+        story = np.random.choice(self.stories)
+        if show:
+           self.format_story(story)
+        return story
+
     @property
     def vocab(self): return self._vocab
 
@@ -158,6 +271,32 @@ class BabiVectorizer:
 
     @property
     def test_stories(self): return self._test_stories
+
+    @property
+    def lookup(self): return self._lookup
+
+    def __getitem__(self, item):
+        """Allows us to use the vectorizer object itself to do lookups. Clever, perhaps too clever.
+        If allow_case_insensitive is specified, try to do a match with all lower case.
+        If that fails, flag the error."""
+        try:
+            return self.lookup[item]
+        except KeyError:
+            pass
+        if self.allow_case_insensitive:
+            correctitem = matchnocase(item, self.word_idx)
+            try:
+                return self.lookup[correctitem]
+            except KeyError:
+                pass
+        if self.allow_softmatch:
+            correctitem = softmatch(item, self.word_idx, 2.)
+            try:
+                return self.lookup[correctitem]
+            except KeyError:
+                pass
+        # fallthrough condition. Key not found with soft matches
+        raise KeyError('Value not found in lookup: {}'.format(item))
 
 
 
