@@ -10,13 +10,15 @@ class Choice(object):
         :param callback: Function to activate when option is selected
         :param kwargs: Keyword arguments to feed to callback
         """
-        self.kwargs = kwargs
+
         if isinstance(key_or_tup, Choice):
             key = key_or_tup.key
             name = key_or_tup.name
             callback = key_or_tup.callback
         elif isinstance(key_or_tup, (tuple, list)):
-            if len(key_or_tup) == 3:
+            if len(key_or_tup) == 4:
+                key, name, callback, kwargs = key_or_tup
+            elif len(key_or_tup) == 3:
                 key, name, callback = key_or_tup
             elif len(key_or_tup) == 2:
                 key, name = key_or_tup
@@ -28,6 +30,7 @@ class Choice(object):
             key = key_or_tup
         else:
             raise ValueError('Invalid menu choice specification list')
+        self.kwargs = kwargs
         self.key = key
         self.name = name
         self.callback = callback
@@ -49,6 +52,13 @@ class Quit(Choice):
         print('Quitting')
         return 'q'
 
+class Back(Choice):
+    def __init__(self):
+        super().__init__('..', 'Back')
+
+    def __call__(self):
+        return '..'
+
 
 class Menu(Choice):
     """
@@ -66,8 +76,9 @@ class Menu(Choice):
         """
         self.loop_on_invalid = loop_on_invalid
         self.quit = Quit()
-        choices = [self.quit] if choices is None else [self.quit] + [Choice(c) for c in choices]
-        self.choices = choices
+        self.back = Back()
+        choices = [] if choices is None else [Choice(c) for c in choices]
+        self.choices = [self.back] + choices + [self.quit]
         self.name = name
         super().__init__(key_or_tup=key, name=name, callback=self)
 
