@@ -14,6 +14,10 @@ def set_arg_parser():
     parser = argparse.ArgumentParser(description='Process eeg data. See docs/main.txt for more info')
     parser.add_argument("-v", "--verbose", action="store_true",
                     help="output verbosity")
+    parser.add_argument("-m", "--model", type=str, default='dmn00.hdf5',
+                        help="Specify a specific model file")
+    parser.add_argument("-c", "--challenge", type=int, choices=[1, 2], default=1,
+                        help="Specify the challenge type (supporting facts) {1|2}")
 
     return parser
 
@@ -39,10 +43,11 @@ class StoryHandler:
             if verbose: print('<v> Loaded model: {}'.format(modelfile))
         except OSError:
             print('~'*30 + '\nWARNING!\n')
-            print('No model file found! {}. Did you train the model yet?'.format(filename))
+            print('No model file [{}] found! Did you train the model yet?'.format(filename))
             print('~'*30)
 
     def fit_model(self, epochs=1, verbose=True):
+        epochs = int(epochs) # make sure this is an int, since it may be fed in as string arg
         print('Fitting {} epochs'.format(epochs))
         filepath = self.modelfile
         checkpointer = ModelCheckpoint(monitor='val_acc', filepath=filepath, verbose=1, save_best_only=False)
@@ -81,23 +86,36 @@ if __name__ == '__main__':
     verbose = args.verbose
     if verbose: print('<v> Verbose print on')
 
-    modelfile = 'dmn01.hdf5'
-    ve = preprocess.BabiVectorizer()
+    challenge = args.challenge
+    modelfile = 'c{}'.format(challenge) + '_' + args.model
+    ve = preprocess.BabiVectorizer(challenge_num=challenge)
     dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen)
 
     handler = StoryHandler(dmn, ve, modelfile)
     handler.load_model(modelfile, verbose=verbose)
 
+    menu_test = menu.Menu('z', 'test',
+                         [['1', 'test 1', lambda: 1],
+                          ['2', 'test 10', lambda: 10],
+                          ['3', 'arg test 100', menu.argPrint, {'foo': 100}]]
+                         )
+    menu_custom_epochs = menu.Choice('f', 'Enter number of epochs', callback=handler.fit_model, userArg='epochs')
+
     menu_fit = menu.Menu('f', 'Fit the model',
                 [['1', 'Fit Model 1 epoch', handler.fit_model],
                  ['2', 'Fit Model 10 epochs', handler.fit_model, {'epochs':10}],
-                 ['3', 'Fit Model 100 epochs', handler.fit_model, {'epochs': 100}]]
+                 ['3', 'Fit Model 100 epochs', handler.fit_model, {'epochs': 100}],
+                 ['x', 'Test args', menu.argPrint, {'foo': 'x test args worked'}],
+
+                 # menu_sub
+                 ]
     )
 
     menu_main = [['1', 'Load Random Story', handler.get_random_story],
                  ['2', 'Query', handler.query],
                  ['3', 'Query (loop)', handler.query_loop],
-                 menu_fit]
+                 # menu.UserEntry(4, 'foo', 'rando', menu.argPrint),
+                 menu_custom_epochs]
 
     mainmenu = menu.Menu('00', '', menu_main)
 

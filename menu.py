@@ -1,8 +1,12 @@
+import pandas
+
+pandas.DataFrame()
+
 class Choice(object):
     """
     Represents an item in a command line menu
     """
-    def __init__(self, key_or_tup, name=None, callback=None, **kwargs):
+    def __init__(self, key_or_tup, name=None, callback=None, userArg=None, **kwargs):
         """
         Generate a new menu item
         :param key_or_tup: str, tup, or Choice: Menu key, or list of arguments, or Choice object to clone
@@ -34,13 +38,20 @@ class Choice(object):
         self.key = key
         self.name = name
         self.callback = callback
+        self.userArg = userArg
 
     def __str__(self):
         return '{: >2}: {}'.format(self.key, self.name)
 
     def __call__(self, *args, **kwargs):
+
+        usekwargs = self.kwargs
+        if self.userArg is not None:
+            query = '<>' + self.name + ': '
+            reply = input(query)
+            usekwargs.update({self.userArg: reply})
         if self.callback is not None:
-            return self.callback(**self.kwargs)
+            return self.callback(**usekwargs)
 
 
 
@@ -59,6 +70,28 @@ class Back(Choice):
     def __call__(self):
         return '..'
 
+class UserEntry(Choice):
+    def __init__(self, key, argname, name=None, callback=None):
+        """
+        Queries the user for an entry. Supplies this value to the callback as kwarg "argname"
+        :param key:
+        :param argname:
+        :param name:
+        :param callback:
+        """
+
+        super().__init__(key_or_tup=key, name=name, callback=callback)
+        self.argname = argname
+        self.callback = callback
+
+    def __call__(self, *args, **kwargs):
+        reply = input('Enter a value: ')
+        kwargs.update({self.argname: reply})
+        return self.callback(**kwargs)
+
+def argPrint(foo='none'):
+    print('Foo is {}'.format(foo))
+
 
 class Menu(Choice):
     """
@@ -66,21 +99,22 @@ class Menu(Choice):
 
     """
 
-    def __init__(self, key, name=None, choices=None, loop_on_invalid=False):
+    def __init__(self, key_or_menu, name=None, choices=None, loop_on_invalid=False):
         """
         Create a Menu object, which when called, returns a new context menu
-        :param key: Key option to call this menu
+        :param key_or_menu: Key option to call this menu
         :param name: Name of menu to disploy
         :param choices: List of Choice objects. Quit is automatically prepended
         :param loop_on_invalid: Display the menu again if selection was invalid. Otherwise, quit on invalid
         """
+
         self.loop_on_invalid = loop_on_invalid
         self.quit = Quit()
         self.back = Back()
-        choices = [] if choices is None else [Choice(c) for c in choices]
+        choices = [] if choices is None else [Menu.itemize(c) for c in choices]
         self.choices = [self.back] + choices + [self.quit]
         self.name = name
-        super().__init__(key_or_tup=key, name=name, callback=self)
+        super().__init__(key_or_tup=key_or_menu, name=name, callback=self)
 
     def get_item(self, key):
         """
@@ -132,6 +166,17 @@ class Menu(Choice):
         choice = self.get_item(r)
         if choice is not None:
             return choice()
+
+    @staticmethod
+    def itemize(item):
+        """
+        Converts the item to the appropriate type
+        :param item:
+        :return:
+        """
+        if isinstance(item, (Menu, Choice)):
+            return item
+        return Choice(item)
 
 
 """
