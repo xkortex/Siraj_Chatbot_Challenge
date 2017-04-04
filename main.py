@@ -1,5 +1,6 @@
 # python libs
 import argparse
+import os
 
 # local libs
 import menu
@@ -87,7 +88,11 @@ if __name__ == '__main__':
     if verbose: print('<v> Verbose print on')
 
     challenge = args.challenge
-    modelfile = 'c{}'.format(challenge) + '_' + args.model
+    # Create our file/directories if they don't exist
+    modelfile = 'models{sp}c{ch}{sp}{name}'.format(sp=os.sep, ch=challenge, name=args.model)
+    modelfile = os.path.normpath(modelfile)
+    os.makedirs(os.path.dirname(modelfile), exist_ok=True)
+
     ve = preprocess.BabiVectorizer(challenge_num=challenge)
     dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen)
 
@@ -99,7 +104,8 @@ if __name__ == '__main__':
                           ['2', 'test 10', lambda: 10],
                           ['3', 'arg test 100', menu.argPrint, {'foo': 100}]]
                          )
-    menu_custom_epochs = menu.Choice('f', 'Enter number of epochs', callback=handler.fit_model, userArg='epochs')
+    menu_custom_epochs = menu.Choice('f', 'Fit for N epochs', callback=handler.fit_model,
+                                     userArg='epochs', userQuery='Enter number of epochs to fit: ')
 
     menu_fit = menu.Menu('f', 'Fit the model',
                 [['1', 'Fit Model 1 epoch', handler.fit_model],

@@ -6,7 +6,7 @@ class Choice(object):
     """
     Represents an item in a command line menu
     """
-    def __init__(self, key_or_tup, name=None, callback=None, userArg=None, **kwargs):
+    def __init__(self, key_or_tup, name=None, callback=None, userArg=None, userQuery=None, **kwargs):
         """
         Generate a new menu item
         :param key_or_tup: str, tup, or Choice: Menu key, or list of arguments, or Choice object to clone
@@ -39,6 +39,7 @@ class Choice(object):
         self.name = name
         self.callback = callback
         self.userArg = userArg
+        self.userQuery = userQuery
 
     def __str__(self):
         return '{: >2}: {}'.format(self.key, self.name)
@@ -47,7 +48,7 @@ class Choice(object):
 
         usekwargs = self.kwargs
         if self.userArg is not None:
-            query = '<>' + self.name + ': '
+            query = '<>' + self.name + ': ' if self.userQuery is None else self.userQuery
             reply = input(query)
             usekwargs.update({self.userArg: reply})
         if self.callback is not None:
