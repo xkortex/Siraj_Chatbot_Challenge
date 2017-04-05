@@ -1,7 +1,3 @@
-import pandas
-
-pandas.DataFrame()
-
 class Choice(object):
     """
     Represents an item in a command line menu

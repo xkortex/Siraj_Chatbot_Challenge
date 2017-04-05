@@ -13,6 +13,8 @@ from functools import reduce
 import tarfile
 import re
 import numpy as np
+import pandas as pd
+
 
 
 from keras.utils.data_utils import get_file
@@ -239,8 +241,16 @@ class BabiVectorizer:
         queryvec = pad_sequences([query], maxlen=self.query_maxlen)
         return queryvec
 
-    def devectorize_ans(self, ansvec, verbose=False):
+    def devectorize_ans(self, ansvec, show_conf=False):
         idx = np.argmax(ansvec)
+        if show_conf:
+            conf = list(ansvec.ravel())
+            vocab = [self[i] for i in range(len(conf))]
+            df = pd.DataFrame(list(zip(vocab, conf  )), columns=['vocab', 'conf'])
+            df = df.sort_values(by='conf', ascending=False)
+            df['conf'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['conf']], index=df.index)
+
+            print(df.head().to_string(index=False))
         return self[idx], ansvec.ravel()[idx]
 
     def format_story(self, story):
