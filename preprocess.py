@@ -140,6 +140,7 @@ def get_stories(f, only_supporting=False, max_length=None):
 class BabiVectorizer:
     allow_case_insensitive = True
     allow_softmatch = False
+    ignore_keyerror = True
     challenges = {
         # QA1 with 10,000 samples
         'single_supporting_fact_10k': 'tasks_1-20_v1-2/en-10k/qa1_single-supporting-fact_{}.txt',
@@ -183,9 +184,15 @@ class BabiVectorizer:
         self._idx_word = idx_word
         self.story_maxlen = story_maxlen
         self.query_maxlen = query_maxlen
+<<<<<<< HEAD
         self._train_records = train_records
         self._test_records = test_records
         self._lookup = {**word_idx, **idx_word} # combine
+=======
+        self._train_stories = train_stories
+        self._test_stories = test_stories
+        self._lookup = {**word_idx} # deal with null cases if necessary
+>>>>>>> master
         self.stories = stories
         self.answers = answers
 
@@ -193,7 +200,7 @@ class BabiVectorizer:
         sentence = []
         for scalar in ary:
             try:
-                word = self[scalar]
+                word = self.idx_word[scalar]
                 if word:
                     sentence.append(word)
             except KeyError:
@@ -246,13 +253,13 @@ class BabiVectorizer:
         idx = np.argmax(ansvec)
         if show_conf:
             conf = list(ansvec.ravel())
-            vocab = [self[i] for i in range(len(conf))]
+            vocab = [self.idx_word[i] for i in range(len(conf))]
             df = pd.DataFrame(list(zip(vocab, conf  )), columns=['vocab', 'conf'])
             df = df.sort_values(by='conf', ascending=False)
             df['conf'] = pd.Series(["{0:.2f}%".format(val * 100) for val in df['conf']], index=df.index)
 
             print(df.head().to_string(index=False))
-        return self[idx], ansvec.ravel()[idx]
+        return self.idx_word[idx], ansvec.ravel()[idx]
 
     def format_story(self, story):
         print('-' * 30)
@@ -289,6 +296,7 @@ class BabiVectorizer:
 
     def __getitem__(self, item):
         """Allows us to use the vectorizer object itself to do lookups. Clever, perhaps too clever.
+        Only does word_to_index lookups. index_to_word lookups must be invoked with self.idx_word
         If allow_case_insensitive is specified, try to do a match with all lower case.
         If that fails, flag the error."""
         try:
@@ -302,13 +310,18 @@ class BabiVectorizer:
             except KeyError:
                 pass
         if self.allow_softmatch:
-            correctitem = softmatch(item, self.word_idx, 2.)
+            correctitem = softmatch(item, self.word_idx, lower=True, cutoff=2.)
             try:
                 return self.lookup[correctitem]
             except KeyError:
                 pass
         # fallthrough condition. Key not found with soft matches
-        raise KeyError('Value not found in lookup: {}'.format(item))
+        if self.ignore_keyerror:
+            print('<!> Value not found in lookup: {}'.format(item))
+            return 0
+
+        else:
+            raise KeyError('Value not found in lookup: {}'.format(item))
 
 
 
