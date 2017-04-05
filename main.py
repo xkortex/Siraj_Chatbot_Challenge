@@ -71,12 +71,13 @@ class StoryHandler:
                       verbose=1, callbacks=callbacks)
 
     def query(self, loop=False):
+        # todo: add accuracy of answer readout
         query = input('Enter a query: ')
         queryvec = ve.vectorize_query(query)
-        storyvec = ve.vectorizeaoeu_story(story)
+        storyvec = ve.vectorize_story(story)
         ans = dmn.query(storyvec, queryvec)
         ans_word, conf = ve.devectorize_ans(ans, show_conf=True)
-        print('Predicted answer:\n>> {} {:.1f}%'.format(ans_word, conf*100))
+        print('Predicted answer:     {} {:.1f}%'.format(ans_word, conf*100))
         statement = 'or q to drop back to menu >>> ' if loop else ''
         reply = input('Press enter to continue {}'.format(statement))
         print('_' * 30)
