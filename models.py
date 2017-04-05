@@ -34,6 +34,7 @@ class DeepMemNet:
         80% @ 68 epochs - super improvement!
         90% @ 110 epochs - smokin'!
         95% @ 148 epochs - starting to level off
+        97% @ 200 epochs - i think it's starting to overfit
     """
     def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True):
         """

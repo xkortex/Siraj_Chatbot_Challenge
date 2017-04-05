@@ -66,8 +66,8 @@ class StoryHandler:
         queryvec = ve.vectorize_query(query)
         storyvec = ve.vectorize_story(story)
         ans = dmn.query(storyvec, queryvec)
-        ans_word = ve.devectorize_ans(ans)
-        print('Predicted answer:\n>> {}'.format(ans_word))
+        ans_word, conf = ve.devectorize_ans(ans)
+        print('Predicted answer:\n>> {} {:.1}%'.format(ans_word, conf*100))
         statement = 'or q to drop back to menu >>> ' if loop else ''
         reply = input('Press enter to continue {}'.format(statement))
         print('_' * 30)
