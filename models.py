@@ -13,6 +13,7 @@ class ConfigurableNetwork:
         # Load the weights
 
         # existential question: should this contain all of the handling for fitting and callbacks?
+        # yeah I think that makes sense. One stop shop for configs, weights, and logging.
 
 
     def setup(self):

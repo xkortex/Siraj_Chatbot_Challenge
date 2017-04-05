@@ -2,13 +2,17 @@
 import argparse
 import os
 
+import numpy as np
+
+from keras.callbacks import ModelCheckpoint, TensorBoard, CSVLogger
+from keras_tqdm import TQDMCallback
+
 # local libs
 import menu
 import models
 import preprocess
 
-from keras.callbacks import ModelCheckpoint, TensorBoard, CSVLogger
-from keras_tqdm import TQDMCallback
+
 
 
 def set_arg_parser():
@@ -23,6 +27,7 @@ def set_arg_parser():
     return parser
 
 def query_model(query=None, model=None, vectorizer=None):
+    raise NotImplementedError('Is this cruft?')
     queryvec = vectorizer
 
 
@@ -33,7 +38,11 @@ class StoryHandler:
         self.modelfile = 'dmn{:02}.hdf5'.format(0) if modelfile is None else modelfile
 
     def get_random_story(self):
-        story = self.vectorizer.get_random_story()
+        # story = self.vectorizer.get_random_story()
+        ri = np.random.randint(0, len(self.vectorizer.test_stories))
+
+        rightanswer = self.vectorizer.answers[ri]
+        story = self.vectorizer.stories[ri]
         self.story = story
         return story
 

@@ -159,23 +159,23 @@ class BabiVectorizer:
         tar = tarfile.open(path)
 
         challenge = self.challenges[self.lookup_challenge[challenge_num]]
-        train_stories = get_stories(tar.extractfile(challenge.format('train')))
-        test_stories = get_stories(tar.extractfile(challenge.format('test')))
+        train_records = get_stories(tar.extractfile(challenge.format('train')))
+        test_records = get_stories(tar.extractfile(challenge.format('test')))
 
         vocab = set()
-        for story, q, answer in train_stories + test_stories:
+        for story, q, answer in train_records + test_records:
             vocab |= set(story + q + [answer])
         vocab = sorted(vocab)
 
         vocab_size = len(vocab) + 1
-        story_maxlen = max(map(len, (x for x, _, _ in train_stories + test_stories)))
-        query_maxlen = max(map(len, (x for _, x, _ in train_stories + test_stories)))
+        story_maxlen = max(map(len, (x for x, _, _ in train_records + test_records)))
+        query_maxlen = max(map(len, (x for _, x, _ in train_records + test_records)))
 
         word_idx = dict((c, i + 1) for i, c in enumerate(vocab))
         idx_word = {value: key for (key, value) in word_idx.items()}  # reverse lookup
         idx_word.update({0: ''})
 
-        stories, queries, answers = zip(*test_stories)
+        stories, queries, answers = zip(*test_records)
 
         self._vocab = vocab
         self._vocab_size = vocab_size
@@ -183,10 +183,11 @@ class BabiVectorizer:
         self._idx_word = idx_word
         self.story_maxlen = story_maxlen
         self.query_maxlen = query_maxlen
-        self._train_stories = train_stories
-        self._test_stories = test_stories
+        self._train_records = train_records
+        self._test_records = test_records
         self._lookup = {**word_idx, **idx_word} # combine
         self.stories = stories
+        self.answers = answers
 
     def deindex_sentence(self, ary, prettify=True):
         sentence = []
@@ -259,6 +260,7 @@ class BabiVectorizer:
         print('-' * 30)
 
     def get_random_story(self, show=False):
+        """Migrating this over to the StoryHandler, where it belongs"""
         story = np.random.choice(self.stories)
         if show:
            self.format_story(story)
@@ -277,10 +279,10 @@ class BabiVectorizer:
     def idx_word(self): return self._idx_word
 
     @property
-    def train_stories(self): return self._train_stories
+    def train_stories(self): return self._train_records
 
     @property
-    def test_stories(self): return self._test_stories
+    def test_stories(self): return self._test_records
 
     @property
     def lookup(self): return self._lookup
