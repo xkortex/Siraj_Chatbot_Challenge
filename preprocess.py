@@ -209,9 +209,9 @@ class BabiVectorizer:
 
     def vectorize_all(self, datatype='train'):
         if datatype == 'train':
-            data = self.train_stories
+            data = self.train_records
         elif datatype == 'test':
-            data = self.test_stories
+            data = self.test_records
         else:
             raise ValueError('Invalid argument "datatype" specified: {}'.format(datatype))
 
@@ -282,10 +282,10 @@ class BabiVectorizer:
     def idx_word(self): return self._idx_word
 
     @property
-    def train_stories(self): return self._train_records
+    def train_records(self): return self._train_records
 
     @property
-    def test_stories(self): return self._test_records
+    def test_records(self): return self._test_records
 
     @property
     def lookup(self): return self._lookup

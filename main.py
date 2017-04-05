@@ -39,7 +39,7 @@ class StoryHandler:
 
     def get_random_story(self):
         # story = self.vectorizer.get_random_story()
-        ri = np.random.randint(0, len(self.vectorizer.test_stories))
+        ri = np.random.randint(0, len(self.vectorizer.test_records))
 
         rightanswer = self.vectorizer.answers[ri]
         story = self.vectorizer.stories[ri]
