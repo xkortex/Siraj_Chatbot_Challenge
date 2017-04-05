@@ -10,31 +10,31 @@ class DeepMemNet:
 
     Model notes:
     Single context task:
-      Regular LSTM:
-        50% @ 10 epochs
-        90% @ 85 epochs
+      Regular LSTM (accuracy/val_acc):
+        50%/??% @ 10 epochs
+        90%/??% @ 85 epochs
 
       Bidirectional LSTM:
-        90% @ 60 epochs - improvement!
+        90%/??% @ 60 epochs - improvement!
 
       Bidirectional + extra forward LSTM:
-        55% @ 80 (stalls)
+        55%/??% @ 80 (stalls)
 
     Double Context task:
       Regular:
-        50% @ 35 epochs
-        67% @ 80 epochs
-        70% @ 100
-        80% @ 192
-        84.7% @ 260
+        50%/??% @ 35 epochs
+        67%/??% @ 80 epochs
+        70%/??% @ 100
+        80%/??% @ 192
+        84.7%/??% @ 260
 
       Bidirectional:
-        50% @ 26 epochs
-        70% @ 48 epochs - improvement!
-        80% @ 68 epochs - super improvement!
-        90% @ 110 epochs - smokin'!
-        95% @ 148 epochs - starting to level off
-        97% @ 200 epochs - i think it's starting to overfit
+        50%/??% @ 26 epochs
+        70%/??% @ 48 epochs - improvement!
+        80%/??% @ 68 epochs - super improvement!
+        90%/??% @ 110 epochs - smokin'!
+        95%/??% @ 148 epochs - starting to level off
+        97%/??% @ 200 epochs - i think it's starting to overfit
     """
     def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True):
         """
