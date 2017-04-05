@@ -13,12 +13,12 @@ To run the command line interface, just type:
 `python main.py` 
 
 ### Arguments
-`python main.py -c 2` to switch to double supporting facts dataset
-`python main.py -m modelname.hdf5` to specify a custom model name. Note that the software automatically places these in the folders `models/c1/` or `models/c2/` depending on the dataset.
+- `python main.py -c 2` to switch to double supporting facts dataset
+- `python main.py -m modelname.hdf5` to specify a custom model name. Note that the software automatically places these in the folders `models/c1/` or `models/c2/` depending on the dataset.
 
-`-m {modelname}` - Set the name of the model and weight save file
-`-c {N}` - Run challenge mode N. `1` is Single context bAbI, `2` is Double context bAbI
-`-v` - Verbose flag
+- `-m {modelname}` - Set the name of the model and weight save file
+- `-c {N}` - Run challenge mode N. `1` is Single context bAbI, `2` is Double context bAbI
+- `-v` - Verbose flag
 
 
 
