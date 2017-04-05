@@ -103,15 +103,16 @@ if __name__ == '__main__':
     os.makedirs(os.path.dirname(modelfile), exist_ok=True)
 
     bidirect = True # use bidirectional layer vs single LSTM
+    tdd = True # use Time-distributed Dense before RNN section
     n_lstm = 32
 
 
     ve = preprocess.BabiVectorizer(challenge_num=challenge)
     dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
-                            n_lstm=32, bidirect=False)
+                            n_lstm=32, bidirect=bidirect, tdd=tdd)
 
-    print('Challenge: {}\nBidirect: {}\nNum LSTM: {}\nVocab Size: {}\nQuery Maxlen: {}'
-          .format(challenge, bidirect, n_lstm, ve.vocab_size, ve.query_maxlen))
+    print('Challenge: {}\nBidirect: {}\nTDD: {}\nNum LSTM: {}\nVocab Size: {}\nQuery Maxlen: {}'
+          .format(challenge, bidirect, tdd, n_lstm, ve.vocab_size, ve.query_maxlen))
     handler = StoryHandler(dmn, ve, modelfile)
     handler.load_model(modelfile, verbose=verbose)
 

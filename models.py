@@ -17,7 +17,7 @@ class DeepMemNet:
             86/80% @ 61 epochs
             95/90% @ 88 epochs
         Run 2
-            
+
 
 
       Bidirectional LSTM:
@@ -26,6 +26,8 @@ class DeepMemNet:
             81%/80% @ 34
             87%/86% @ 48 (peak valacc)
             90%/86% @ 60 epochs - minor overfitting
+
+        I think parameters were not configured right, these might be Single LSTM! need to rerun everything >_<
         Run 2
             73/71% @ 44
             83/80% @ 53
@@ -37,6 +39,12 @@ class DeepMemNet:
 
       Bidirectional + extra forward LSTM:
         55%/??% @ 80 (stalls)
+
+      TDDense + Bidirectional:
+        Run 1:
+            76/73% @ 37
+            80/80% @ 41
+            91/90% @ 54 - new record!!
 
     Double Context task:
       Regular:
@@ -55,7 +63,7 @@ class DeepMemNet:
         97%/??% @ 200 epochs - i think it's starting to overfit
     """
     # todo: add performance logging
-    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True):
+    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True, tdd=True):
         """
         DeepMemNet
 
@@ -119,7 +127,8 @@ class DeepMemNet:
         answer = concatenate([response, question_encoded], name='AnswerConcat')
 
         # Let's try with a time distributed dense before the RNN
-        # answer = TimeDistributed(Dense(n_lstm, name='Answer_TDD'))(answer)
+        if tdd:
+            answer = TimeDistributed(Dense(n_lstm, name='Answer_TDD'))(answer)
 
         # Bidirectional LSTM for better context recognition, plus an additional one for flavor
         lstm_rev = Bidirectional(LSTM(n_lstm, return_sequences=True, name='Ans_LSTM_reverse'))

@@ -24,7 +24,10 @@ You'll be able to train the network directly from the menu. If you do not have a
 
 Here are some improvements I made to the demo network:
 ### Bidirectional LSTM
-The single forward-pass LSTM was converted to bidirectional layer with the Bidirectional wrapper. Yuuuuuge improvement on double-context task - 84.7% after 260 epochs with single, improved to 90% after only 110 epochs with bidirectional. Nice! Asymptoted to 95% after about 150 epochs. The Single-context task got to 90% after 60 vs 85 epochs, modest improvement.  
+The single forward-pass LSTM was converted to bidirectional layer with the Bidirectional wrapper. Yuuuuuge improvement on double-context task - 84.7% (training acc) after 260 epochs with single, improved to 90% after only 110 epochs with bidirectional. Nice! Asymptoted to 95% after about 150 epochs. The Single-context task got to 90% after 60 vs 85 epochs, modest improvement.  
+
+### Time-Distributed Dense
+Adding a TDD layer before the LSTM gave an additional jump in terms of training time and overall accuracy, reaching 95% valacc after 65 epochs on single-context (with default 32 nodes).
 
 ## Not-so-improvements
 ### Third LSTM layer
