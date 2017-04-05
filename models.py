@@ -4,6 +4,23 @@ from keras.layers import Input, Activation, Dense, Permute, Dropout, add, dot, c
 from keras.layers import LSTM, TimeDistributed
 from keras.layers.wrappers import Bidirectional
 
+class ConfigurableNetwork:
+    defaultfile = 'default.cfg'
+    def __init__(self, modelname):
+        self._modelname = modelname
+
+        # Set up the environment. load config file if it is there, if not, then create it form default
+        # Load the weights
+
+        # existential question: should this contain all of the handling for fitting and callbacks?
+
+
+    def setup(self):
+        pass
+
+    @property
+    def modelname(self): return self._modelname
+
 class DeepMemNet:
     """
     DeepMemNet for the Facebook bAbI context task.
