@@ -1,4 +1,5 @@
 # Data
+model.png
 *.np[yz]
 *.hdf5
 logs/

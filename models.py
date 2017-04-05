@@ -2,6 +2,7 @@ from keras.models import Sequential, Model
 from keras.layers.embeddings import Embedding
 from keras.layers import Input, Activation, Dense, Permute, Dropout, add, dot, concatenate
 from keras.layers import LSTM, TimeDistributed
+from keras.layers import Conv1D
 from keras.layers.wrappers import Bidirectional
 
 class ConfigurableNetwork:
@@ -81,7 +82,8 @@ class DeepMemNet:
         97%/??% @ 200 epochs - i think it's starting to overfit
     """
     # todo: add performance logging
-    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True, tdd=True):
+    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True, tdd=True,
+                 matchconv=True, permute=False):
         """
         DeepMemNet
 
@@ -137,12 +139,21 @@ class DeepMemNet:
         match = dot([input_encoded_m, question_encoded], axes=(2, 2), name='Match')
         match = Activation('softmax')(match)
 
+        if matchconv:
+            match = Conv1D(query_maxlen, 4, padding='same')(match)
+
         # add the match matrix with the second input vector sequence
         response = add([match, input_encoded_c], name='ResponseAdd')  # (samples, story_maxlen, query_maxlen)
         response = Permute((2, 1), name='ResponsePermute')(response)  # (samples, query_maxlen, story_maxlen)
 
         # concatenate the match matrix with the question vector sequence
         answer = concatenate([response, question_encoded], name='AnswerConcat')
+
+        # Trying to feed in the long axis as the timestep causes the GPU to get very angry.
+        # It would appear it causes it to start thrashing memory
+        if permute:
+            answer = Permute((2, 1), name='AnswerPermute')(answer)  # (samples, story_maxlen, query_maxlen)
+
 
         # Let's try with a time distributed dense before the RNN
         if tdd:
