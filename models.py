@@ -5,34 +5,51 @@ from keras.layers import LSTM
 from keras.layers.wrappers import Bidirectional
 
 class DeepMemNet:
-    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4):
+    """
+    DeepMemNet for the Facebook bAbI context task.
+
+    Model notes:
+    Single context task:
+      Num Epochs to reach 50% acc:
+        Regular LSTM: 10 epochs
+      Num Epochs to reach 90% acc:
+        Regular LSTM: 85 epochs
+        Bidirectional 60 epochs - improvement!
+        Bidirectional + Extra forward LSTM: stalls at 55%
+
+    Double Context task:
+      Num Epochs to reach 50% acc:
+        Regular LSTM: 35 epochs
+    """
+    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32,):
+
         self.vocab_size = vocab_size
         self.story_maxlen = story_maxlen
         self.query_maxlen = query_maxlen
         # placeholders
-        input_sequence = Input((story_maxlen,))
-        question = Input((query_maxlen,))
+        input_sequence = Input((story_maxlen,), name='InputSeq')
+        question = Input((query_maxlen,), name='Question')
 
-        # encoders
-        # embed the input sequence into a sequence of vectors
-        input_encoder_m = Sequential()
+        # Encoders - initial encoders are pretty much just projecting the input into a useful space
+        # not much need to optimize here really
+        input_encoder_m = Sequential(name='InputEncoderM')
         input_encoder_m.add(Embedding(input_dim=vocab_size,
-                                      output_dim=64))
+                                      output_dim=64, name='InEncM_Embed'))
         input_encoder_m.add(Dropout(0.3))
         # output: (samples, story_maxlen, embedding_dim)
 
         # embed the input into a sequence of vectors of size query_maxlen
-        input_encoder_c = Sequential()
+        input_encoder_c = Sequential(name='InputEncoderC')
         input_encoder_c.add(Embedding(input_dim=vocab_size,
-                                      output_dim=query_maxlen))
+                                      output_dim=query_maxlen, name='InEncC_Embed'))
         input_encoder_c.add(Dropout(0.3))
         # output: (samples, story_maxlen, query_maxlen)
 
         # embed the question into a sequence of vectors
-        question_encoder = Sequential()
+        question_encoder = Sequential(name='QuestionEncoder')
         question_encoder.add(Embedding(input_dim=vocab_size,
                                        output_dim=64,
-                                       input_length=query_maxlen))
+                                       input_length=query_maxlen, name='QuesEnc_Embed'))
         question_encoder.add(Dropout(0.3))
         # output: (samples, query_maxlen, embedding_dim)
 
@@ -45,23 +62,29 @@ class DeepMemNet:
         # compute a 'match' between the first input vector sequence
         # and the question vector sequence
         # shape: `(samples, story_maxlen, query_maxlen)`
-        match = dot([input_encoded_m, question_encoded], axes=(2, 2))
+        match = dot([input_encoded_m, question_encoded], axes=(2, 2), name='Match')
         match = Activation('softmax')(match)
 
         # add the match matrix with the second input vector sequence
-        response = add([match, input_encoded_c])  # (samples, story_maxlen, query_maxlen)
-        response = Permute((2, 1))(response)  # (samples, query_maxlen, story_maxlen)
+        response = add([match, input_encoded_c], name='ResponseAdd')  # (samples, story_maxlen, query_maxlen)
+        response = Permute((2, 1), name='ResponsePermute')(response)  # (samples, query_maxlen, story_maxlen)
 
         # concatenate the match matrix with the question vector sequence
-        answer = concatenate([response, question_encoded])
+        answer = concatenate([response, question_encoded], name='AnswerConcat')
 
-        # the original paper uses a matrix multiplication for this reduction step.
-        # we choose to use a RNN instead.
-        answer = LSTM(32)(answer)  # (samples, 32)
+        # Bidirectional LSTM for better context recognition, plus an additional one for flavor
+        # lstm_1 = Bidirectional(LSTM(n_lstm, return_sequences=True, name='Ans_LSTM_1'))
+        lstm_2 = Bidirectional(LSTM(n_lstm, return_sequences=False, name='Ans_LSTM_2'))
+        # answer = lstm_1(answer)  # (samples, 32)
+        answer = lstm_2(answer)
+        # answer = LSTM(n_lstm, name='Ans_LSTM_3)(answer) # Extra LSTM completely runs out of steam at 55% acc! Bidirectional seems to help
+
+        #
+        # Interestingly
 
         # one regularization layer -- more would probably be needed.
-        answer = Dropout(0.3)(answer)
-        answer = Dense(vocab_size)(answer)  # (samples, vocab_size)
+        answer = Dropout(0.3, name='Answer_Drop')(answer)
+        answer = Dense(vocab_size, name='Answer_Dense')(answer)  # (samples, vocab_size)
         # we output a probability distribution over the vocabulary
         answer = Activation('softmax')(answer)
 
