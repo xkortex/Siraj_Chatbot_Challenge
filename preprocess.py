@@ -184,15 +184,11 @@ class BabiVectorizer:
         self._idx_word = idx_word
         self.story_maxlen = story_maxlen
         self.query_maxlen = query_maxlen
-<<<<<<< HEAD
+
         self._train_records = train_records
         self._test_records = test_records
-        self._lookup = {**word_idx, **idx_word} # combine
-=======
-        self._train_stories = train_stories
-        self._test_stories = test_stories
         self._lookup = {**word_idx} # deal with null cases if necessary
->>>>>>> master
+
         self.stories = stories
         self.answers = answers
 
