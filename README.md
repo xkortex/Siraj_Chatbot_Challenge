@@ -1,5 +1,5 @@
 # Siraj_Chatbot_Challenge
-Entry for machine learning 
+Entry for machine learning tutorial [How to Make a Chatbot - Intro to Deep Learning #12](https://www.youtube.com/watch?v=t5qgjJIBy9g)
 
 
 ### Dependencies
