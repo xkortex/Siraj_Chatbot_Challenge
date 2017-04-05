@@ -241,7 +241,7 @@ class BabiVectorizer:
 
     def devectorize_ans(self, ansvec, verbose=False):
         idx = np.argmax(ansvec)
-        return self[idx], ansvec[idx]
+        return self[idx], ansvec.ravel()[idx]
 
     def format_story(self, story):
         print('-' * 30)

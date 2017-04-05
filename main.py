@@ -67,7 +67,7 @@ class StoryHandler:
         storyvec = ve.vectorize_story(story)
         ans = dmn.query(storyvec, queryvec)
         ans_word, conf = ve.devectorize_ans(ans)
-        print('Predicted answer:\n>> {} {:.1}%'.format(ans_word, conf*100))
+        print('Predicted answer:\n>> {} {:.1f}%'.format(ans_word, conf*100))
         statement = 'or q to drop back to menu >>> ' if loop else ''
         reply = input('Press enter to continue {}'.format(statement))
         print('_' * 30)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     ve = preprocess.BabiVectorizer(challenge_num=challenge)
     dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
-                            n_lstm=50)
+                            n_lstm=32)
 
     handler = StoryHandler(dmn, ve, modelfile)
     handler.load_model(modelfile, verbose=verbose)
