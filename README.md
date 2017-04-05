@@ -4,13 +4,15 @@ Entry for machine learning tutorial [How to Make a Chatbot - Intro to Deep Learn
 
 ### Dependencies
 - pandas - Needed for some data sorting operations
-- keras - obviously
-- h5py - for model checkpointing
-- keras-tqdm - because my Jupyter notebooks freezes on the default Keras progbar. Also, it's awesome
+- keras - Deep learning FTW
+- tensorflow - My preferred Keras backend. Tensorboard is now integrated, so it'll need some tweaking to be Theano-compatible again 
+- h5py - for model checkpointing and saving weights
+- keras-tqdm - because my Jupyter notebooks freezes on the default Keras progbar. Also, it's awesome.
 
 ## Running 
 To run the command line interface, just type:
 `python main.py` 
+If this is the first time you are running the program, or you just created a new model, you'll have to train it first, which you can do directly from the menu. If you do not have any trained models yet, you can select `f` from the menu to fit the model. 
 
 ### Arguments
 - `-m {modelname}` - Set the name of the model and weight save file
@@ -22,12 +24,9 @@ Example uses:
 <br>`python main.py -m modelname.hdf5` to specify a custom model name. Note that the software automatically places these in the folders `models/c1/` or `models/c2/` depending on the dataset.
 
 
+##### If you want to suppress some of the TF notifications and the progbars, you can append ` 2> /dev/null` to redirect that junk. 
 
 
-
-If you want to suppress some of the TF notifications and the progbars, you can append ` 2> /dev/null` to redirect that junk. 
-
-You'll be able to train the network directly from the menu. If you do not have any trained models yet, you can select `f` from the menu to fit the model. 
 
 # Network Improvements:
 
@@ -43,3 +42,30 @@ These are all accuracy numbers, not validation accuracy. Valacc is still falling
 ## Not-so-improvements
 ### Third LSTM layer
 Adding a forward pass after the bidirectional pair did not give improvements, in fact it caused the network to stall out around 55%. I've seen towers of LSTMs used to good effect in other NLP papers. Maybe they have some secret sauce I don't. 
+
+
+## Navigating
+The main menu looks like this:
+```bash
+------------------------------
+Sandra went back to the kitchen.
+Sandra journeyed to the garden.
+Mary went back to the kitchen.
+Sandra went to the kitchen.
+------------------------------
+
+..: Back
+ 1: Load Random Story
+ 2: Query
+ 3: Query (loop)
+ f: Fit for N epochs
+ q: Quit
+Enter menu selection: 
+```
+The currently loaded story is shown at the top. Enter letters to navigate the menu. 
+- `..` is currently non-functional
+- `1` loads a new story. 
+- `2` lets you type in a query. It goes back to the main menu after
+- `3` like 2, but brings you back to the query prompt after, for convenience
+- `f` lets you enter in a number to fit the model for that many epochs. 
+
