@@ -20,8 +20,21 @@ class DeepMemNet:
     Double Context task:
       Num Epochs to reach 50% acc:
         Regular LSTM: 35 epochs
+
+      Regular:
+        67% @ 80 epochs
     """
-    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32,):
+    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True):
+        """
+        DeepMemNet
+
+        Param note - changing parameters will require new model file (duh) - this isn't automatic yet
+        :param vocab_size:
+        :param story_maxlen:
+        :param query_maxlen:
+        :param n_lstm:
+        :param bidirect:
+        """
 
         self.vocab_size = vocab_size
         self.story_maxlen = story_maxlen
@@ -73,10 +86,11 @@ class DeepMemNet:
         answer = concatenate([response, question_encoded], name='AnswerConcat')
 
         # Bidirectional LSTM for better context recognition, plus an additional one for flavor
-        # lstm_1 = Bidirectional(LSTM(n_lstm, return_sequences=True, name='Ans_LSTM_1'))
-        lstm_2 = Bidirectional(LSTM(n_lstm, return_sequences=False, name='Ans_LSTM_2'))
-        # answer = lstm_1(answer)  # (samples, 32)
-        answer = lstm_2(answer)
+        lstm_rev = Bidirectional(LSTM(n_lstm, return_sequences=True, name='Ans_LSTM_reverse'))
+        lstm_for = Bidirectional(LSTM(n_lstm, return_sequences=False, name='Ans_LSTM_forward'))
+        if bidirect:
+            answer = lstm_rev(answer)  # "reverse" pass goes first
+        answer = lstm_for(answer)
         # answer = LSTM(n_lstm, name='Ans_LSTM_3)(answer) # Extra LSTM completely runs out of steam at 55% acc! Bidirectional seems to help
 
         #
