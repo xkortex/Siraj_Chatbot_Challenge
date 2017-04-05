@@ -83,7 +83,7 @@ class DeepMemNet:
     """
     # todo: add performance logging
     def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True, tdd=True,
-                 matchconv=True, permute=False):
+                 matchconv=False, permute=False):
         """
         DeepMemNet
 
