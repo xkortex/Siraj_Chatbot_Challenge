@@ -17,6 +17,7 @@ If this is the first time you are running the program, or you just created a new
 ### Arguments
 - `-m {modelname}` - Set the name of the model and weight save file
 - `-c {N}` - Run challenge mode N. `1` is Single context bAbI, `2` is Double context bAbI
+- `-a {N}`- Run architecture N. `1` is bAbI DMN, `2` a more conventional convolutional LSTM (warning: hard on memory)
 - `-v` - Verbose flag
 
 Example uses:
@@ -24,7 +25,7 @@ Example uses:
 <br>`python main.py -m modelname.hdf5` to specify a custom model name. Note that the software automatically places these in the folders `models/c1/` or `models/c2/` depending on the dataset.
 
 
-##### If you want to suppress some of the TF notifications and the progbars, you can append ` 2> /dev/null` to redirect that junk. 
+##### If you want to suppress some of the TF notifications and the progbars, you can append ` 2> /dev/null` to redirect that junk.
 
 ### Note on Challenge 2: Two Supporting Facts
 There are actually two challenges that came with the Q/A task, the single supporting fact, and the double supporting facts. The former is pretty easy to knock out of the park, while the latter has proven quite stubborn. I was able to get >95% training accuracy but only 35-40% validation accuracy, a surefire sign of overfitting. I tried some clever hacks with the network but I was not able to improve results. The authors claim that they aced the two supporting fact problem, but the Keras code as provided seems to fall short. Meh.
@@ -32,6 +33,10 @@ There are actually two challenges that came with the Q/A task, the single suppor
 # Network Improvements:
 
 Here are some improvements I made to the demo network:
+### Convo LSTM
+I added the option to compare against a convolutional LSTM architecture. So far, kind of middling results. Needs to be configured for minibatch. 
+
+
 ### Bidirectional LSTM
 The single forward-pass LSTM was converted to bidirectional layer with the Bidirectional wrapper. Yuuuuuge improvement on double-context task - 84.7% (training acc) after 260 epochs with single, improved to 90% after only 110 epochs with bidirectional. Nice! Asymptoted to 95% after about 150 epochs. However, I later realized these figures were pretty misleading, as the validation was not keeping pace with the training accuracy.
 
