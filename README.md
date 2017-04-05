@@ -26,13 +26,16 @@ Example uses:
 
 ##### If you want to suppress some of the TF notifications and the progbars, you can append ` 2> /dev/null` to redirect that junk. 
 
-
+### Note on Challenge 2: Two Supporting Facts
+There are actually two challenges that came with the Q/A task, the single supporting fact, and the double supporting facts. The former is pretty easy to knock out of the park, while the latter has proven quite stubborn. I was able to get >95% training accuracy but only 35-40% validation accuracy, a surefire sign of overfitting. I tried some clever hacks with the network but I was not able to improve results. The authors claim that they aced the two supporting fact problem, but the Keras code as provided seems to fall short. Meh.
 
 # Network Improvements:
 
 Here are some improvements I made to the demo network:
 ### Bidirectional LSTM
-The single forward-pass LSTM was converted to bidirectional layer with the Bidirectional wrapper. Yuuuuuge improvement on double-context task - 84.7% (training acc) after 260 epochs with single, improved to 90% after only 110 epochs with bidirectional. Nice! Asymptoted to 95% after about 150 epochs. The Single-context task got to 90% after 60 vs 85 epochs, modest improvement.  
+The single forward-pass LSTM was converted to bidirectional layer with the Bidirectional wrapper. Yuuuuuge improvement on double-context task - 84.7% (training acc) after 260 epochs with single, improved to 90% after only 110 epochs with bidirectional. Nice! Asymptoted to 95% after about 150 epochs. However, I later realized these figures were pretty misleading, as the validation was not keeping pace with the training accuracy.
+
+ The Single-context task got to 90% validation accuracy after 60 vs 85 epochs, modest improvement.
 
 ### Time-Distributed Dense
 Adding a TDD layer before the LSTM gave an additional jump in terms of training time and overall accuracy, reaching 95% valacc after 65 epochs on single-context (with default 32 nodes).
@@ -40,6 +43,9 @@ Adding a TDD layer before the LSTM gave an additional jump in terms of training 
 These are all accuracy numbers, not validation accuracy. Valacc is still falling a bit behind, so there is a fair amount of overfit going on. 
 
 ## Not-so-improvements
+### Conv1D in the Match layer
+Who doesn't love convo layers? Hoping to get better context recognition, I put a convolayer after the Match dot product part of the network. It didn't hurt the performance, but it didn't give the gains in the Challenge 2 I was looking for.
+
 ### Third LSTM layer
 Adding a forward pass after the bidirectional pair did not give improvements, in fact it caused the network to stall out around 55%. I've seen towers of LSTMs used to good effect in other NLP papers. Maybe they have some secret sauce I don't. 
 
