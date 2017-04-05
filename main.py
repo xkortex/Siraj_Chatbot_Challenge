@@ -94,7 +94,8 @@ if __name__ == '__main__':
     os.makedirs(os.path.dirname(modelfile), exist_ok=True)
 
     ve = preprocess.BabiVectorizer(challenge_num=challenge)
-    dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen)
+    dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
+                            n_lstm=50)
 
     handler = StoryHandler(dmn, ve, modelfile)
     handler.load_model(modelfile, verbose=verbose)
