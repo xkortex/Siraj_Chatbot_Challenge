@@ -3,17 +3,26 @@ Entry for machine learning
 
 
 ### Dependencies
-keras - obviously
-h5py - for model checkpointing
-keras-tqdm - because my Jupyter notebooks freezes on the default Keras progbar. Also, it's awesome
+- pandas - Needed for some data sorting operations
+- keras - obviously
+- h5py - for model checkpointing
+- keras-tqdm - because my Jupyter notebooks freezes on the default Keras progbar. Also, it's awesome
 
 ## Running 
 To run the command line interface, just type:
 `python main.py` 
 
 ### Arguments
-`python main.py -c 2` to switch to double supporting facts dataset
-`python main.py -m modelname.hdf5` to specify a custom model name. Note that the software automatically places these in the folders `models/c1/` or `models/c2/` depending on the dataset.
+- `-m {modelname}` - Set the name of the model and weight save file
+- `-c {N}` - Run challenge mode N. `1` is Single context bAbI, `2` is Double context bAbI
+- `-v` - Verbose flag
+
+Example uses:
+<br>`python main.py -c 2` to switch to double supporting facts dataset
+<br>`python main.py -m modelname.hdf5` to specify a custom model name. Note that the software automatically places these in the folders `models/c1/` or `models/c2/` depending on the dataset.
+
+
+
 
 
 If you want to suppress some of the TF notifications and the progbars, you can append ` 2> /dev/null` to redirect that junk. 
@@ -28,6 +37,8 @@ The single forward-pass LSTM was converted to bidirectional layer with the Bidir
 
 ### Time-Distributed Dense
 Adding a TDD layer before the LSTM gave an additional jump in terms of training time and overall accuracy, reaching 95% valacc after 65 epochs on single-context (with default 32 nodes).
+
+These are all accuracy numbers, not validation accuracy. Valacc is still falling a bit behind, so there is a fair amount of overfit going on. 
 
 ## Not-so-improvements
 ### Third LSTM layer

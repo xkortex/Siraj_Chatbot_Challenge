@@ -73,7 +73,7 @@ class StoryHandler:
     def query(self, loop=False):
         query = input('Enter a query: ')
         queryvec = ve.vectorize_query(query)
-        storyvec = ve.vectorize_story(story)
+        storyvec = ve.vectorizeaoeu_story(story)
         ans = dmn.query(storyvec, queryvec)
         ans_word, conf = ve.devectorize_ans(ans, show_conf=True)
         print('Predicted answer:\n>> {} {:.1f}%'.format(ans_word, conf*100))
