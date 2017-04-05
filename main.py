@@ -51,7 +51,9 @@ class StoryHandler:
         epochs = int(epochs) # make sure this is an int, since it may be fed in as string arg
         print('Fitting {} epochs'.format(epochs))
         filepath = self.modelfile
-        checkpointer = ModelCheckpoint(monitor='val_acc', filepath=filepath, verbose=1, save_best_only=False)
+        checkpointer = ModelCheckpoint(monitor='val_acc', filepath=filepath, verbose=1, save_best_only=True)
+        progbar = TQDMCallback() # is actually interfering with displaying val_acc, so resorting to default progbar
+        callbacks = [checkpointer]
         inputs_train, queries_train, answers_train = self.vectorizer.vectorize_all('train')
 
         inputs_test, queries_test, answers_test = self.vectorizer.vectorize_all('test')
@@ -59,7 +61,7 @@ class StoryHandler:
                       batch_size=32,
                       epochs=epochs,
                       validation_data=([inputs_test, queries_test], answers_test),
-                      verbose=0, callbacks=[checkpointer, TQDMCallback()])
+                      verbose=1, callbacks=callbacks)
 
     def query(self, loop=False):
         query = input('Enter a query: ')
