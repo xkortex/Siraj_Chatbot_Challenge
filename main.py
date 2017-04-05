@@ -7,7 +7,7 @@ import menu
 import models
 import preprocess
 
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, TensorBoard, CSVLogger
 from keras_tqdm import TQDMCallback
 
 
@@ -48,12 +48,19 @@ class StoryHandler:
             print('~'*30)
 
     def fit_model(self, epochs=1, verbose=True):
+
+        # todo: Quitting with Ctrl-C causes CUDA to get stuck and leaves last program in gpumem.
+        # todo: attach callbacks and configs to model class, not here
+        # TF needs to exit cleanly
         epochs = int(epochs) # make sure this is an int, since it may be fed in as string arg
         print('Fitting {} epochs'.format(epochs))
         filepath = self.modelfile
+        modelname = os.path.splitext(os.path.basename(self.modelfile))[0]
         checkpointer = ModelCheckpoint(monitor='val_acc', filepath=filepath, verbose=1, save_best_only=True)
+        csvlogger = CSVLogger('logs/' + modelname + '.csv', append=True) # todo point this to proper location
+        tensorboard = TensorBoard()
         progbar = TQDMCallback() # is actually interfering with displaying val_acc, so resorting to default progbar
-        callbacks = [checkpointer]
+        callbacks = [checkpointer, tensorboard, csvlogger]
         inputs_train, queries_train, answers_train = self.vectorizer.vectorize_all('train')
 
         inputs_test, queries_test, answers_test = self.vectorizer.vectorize_all('test')
@@ -95,10 +102,16 @@ if __name__ == '__main__':
     modelfile = os.path.normpath(modelfile)
     os.makedirs(os.path.dirname(modelfile), exist_ok=True)
 
+    bidirect = True # use bidirectional layer vs single LSTM
+    n_lstm = 32
+
+
     ve = preprocess.BabiVectorizer(challenge_num=challenge)
     dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
-                            n_lstm=32)
+                            n_lstm=32, bidirect=False)
 
+    print('Challenge: {}\nBidirect: {}\nNum LSTM: {}\nVocab Size: {}\nQuery Maxlen: {}'
+          .format(challenge, bidirect, n_lstm, ve.vocab_size, ve.query_maxlen))
     handler = StoryHandler(dmn, ve, modelfile)
     handler.load_model(modelfile, verbose=verbose)
 

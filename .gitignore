@@ -1,6 +1,7 @@
 # Data
 *.np[yz]
 *.hdf5
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
