@@ -23,6 +23,8 @@ def set_arg_parser():
                         help="Specify a specific model file")
     parser.add_argument("-c", "--challenge", type=int, choices=[1, 2], default=1,
                         help="Specify the challenge type (supporting facts) {1|2}")
+    parser.add_argument("-a", "--arch", type=int, choices=[1, 2], default=1,
+                        help="Specify the model archetecture (DMN, ConvLSTM) {1|2}")
 
     return parser
 
@@ -118,8 +120,13 @@ if __name__ == '__main__':
 
 
     ve = preprocess.BabiVectorizer(challenge_num=challenge)
-    dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
-                            n_lstm=32, bidirect=bidirect, tdd=tdd)
+    if args.arch == 2:
+        dmn = models.ConvoLSTM(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
+                                n_lstm=32, bidirect=bidirect, tdd=False)
+
+    else:
+        dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
+                                n_lstm=32, bidirect=bidirect, tdd=tdd)
 
     print('Challenge: {}\nBidirect: {}\nTDD: {}\nNum LSTM: {}\nVocab Size: {}\nQuery Maxlen: {}'
           .format(challenge, bidirect, tdd, n_lstm, ve.vocab_size, ve.query_maxlen))

@@ -2,7 +2,7 @@ from keras.models import Sequential, Model
 from keras.layers.embeddings import Embedding
 from keras.layers import Input, Activation, Dense, Permute, Dropout, add, dot, concatenate
 from keras.layers import LSTM, TimeDistributed
-from keras.layers import Conv1D
+from keras.layers import Conv1D, MaxPool1D
 from keras.layers.wrappers import Bidirectional
 
 class ConfigurableNetwork:
@@ -23,7 +23,23 @@ class ConfigurableNetwork:
     @property
     def modelname(self): return self._modelname
 
-class DeepMemNet:
+
+
+class QueryableNet:
+    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4):
+        self.model = None
+        self.vocab_size = vocab_size
+        self.query_maxlen = query_maxlen
+        self.story_maxlen = story_maxlen
+
+
+    def query(self, storyvec, queryvec):
+        storyvec = storyvec.reshape((-1, self.story_maxlen))
+        queryvec = queryvec.reshape((-1, self.query_maxlen))
+        ans = self.model.predict([storyvec, queryvec])
+        return ans
+
+class DeepMemNet(QueryableNet):
     """
     DeepMemNet for the Facebook bAbI context task.
 
@@ -97,9 +113,10 @@ class DeepMemNet:
 
         # todo: config file for model hyperparams with logging link
 
-        self.vocab_size = vocab_size
-        self.story_maxlen = story_maxlen
-        self.query_maxlen = query_maxlen
+        # self.vocab_size = vocab_size
+        # self.story_maxlen = story_maxlen
+        # self.query_maxlen = query_maxlen
+        super().__init__(vocab_size=vocab_size, story_maxlen=story_maxlen, query_maxlen=query_maxlen)
         # placeholders
         input_sequence = Input((story_maxlen,), name='InputSeq')
         question = Input((query_maxlen,), name='Question')
@@ -182,8 +199,49 @@ class DeepMemNet:
 
         self.model = model
 
-    def query(self, storyvec, queryvec):
-        storyvec = storyvec.reshape((-1, self.story_maxlen))
-        queryvec = queryvec.reshape((-1, self.query_maxlen))
-        ans = self.model.predict([storyvec, queryvec])
-        return ans
+    # def query(self, storyvec, queryvec):
+    #     storyvec = storyvec.reshape((-1, self.story_maxlen))
+    #     queryvec = queryvec.reshape((-1, self.query_maxlen))
+    #     ans = self.model.predict([storyvec, queryvec])
+    #     return ans
+
+
+class ConvoLSTM(QueryableNet):
+    def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True, tdd=True,
+                 matchconv=False, permute=False):
+        super().__init__(vocab_size=vocab_size, story_maxlen=story_maxlen, query_maxlen=query_maxlen)
+
+        dropout_rate = 0.2
+        embed_vector_len = 64
+        n_filter = 120
+        filter_length = 5
+
+        input_sequence = Input((story_maxlen,), name='InputSeq')
+        question = Input((query_maxlen,), name='Question')
+        #         input_sequence = Activation('linear')(input_sequence)
+        #         question = Activation('linear')(question)
+
+        #         model = Model()
+        layer = concatenate([input_sequence, question], name='AnswerConcat')
+        layer = Embedding(vocab_size, embed_vector_len)(layer)
+        layer = Conv1D(filters=n_filter, kernel_size=filter_length, padding='valid', activation='relu')(layer)
+        layer = MaxPool1D(pool_size=2)(layer)
+        layer = Dropout(dropout_rate)(layer)
+        #         model = LSTM(n_lstm)(model)
+
+        # Let's try with a time distributed dense before the RNN
+        if tdd:
+            layer = TimeDistributed(Dense(n_lstm, name='Answer_TDD'))(layer)
+
+        # Bidirectional LSTM for better context recognition, plus an additional one for flavor
+        lstm_rev = Bidirectional(LSTM(n_lstm, return_sequences=True, name='Ans_LSTM_reverse'))
+        lstm_for = Bidirectional(LSTM(n_lstm, return_sequences=False, name='Ans_LSTM_forward'))
+        if bidirect:
+            layer = lstm_rev(layer)  # "reverse" pass goes first
+        layer = lstm_for(layer)
+        #         model = LSTM(n_lstm)(model)
+        layer = Dropout(dropout_rate)(layer)
+        output = Dense(vocab_size, activation='sigmoid')(layer)
+        model = Model([input_sequence, question], output)
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        self.model = model
