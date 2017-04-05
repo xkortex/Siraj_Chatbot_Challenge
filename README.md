@@ -3,9 +3,10 @@ Entry for machine learning
 
 
 ### Dependencies
-keras - obviously
-h5py - for model checkpointing
-keras-tqdm - because my Jupyter notebooks freezes on the default Keras progbar. Also, it's awesome
+- pandas - Needed for some data sorting operations
+- keras - obviously
+- h5py - for model checkpointing
+- keras-tqdm - because my Jupyter notebooks freezes on the default Keras progbar. Also, it's awesome
 
 ## Running 
 To run the command line interface, just type:
@@ -14,6 +15,11 @@ To run the command line interface, just type:
 ### Arguments
 `python main.py -c 2` to switch to double supporting facts dataset
 `python main.py -m modelname.hdf5` to specify a custom model name. Note that the software automatically places these in the folders `models/c1/` or `models/c2/` depending on the dataset.
+
+`-m {modelname}` - Set the name of the model and weight save file
+`-c {N}` - Run challenge mode N. `1` is Single context bAbI, `2` is Double context bAbI
+`-v` - Verbose flag
+
 
 
 If you want to suppress some of the TF notifications and the progbars, you can append ` 2> /dev/null` to redirect that junk. 
