@@ -51,7 +51,9 @@ class StoryHandler:
         epochs = int(epochs) # make sure this is an int, since it may be fed in as string arg
         print('Fitting {} epochs'.format(epochs))
         filepath = self.modelfile
-        checkpointer = ModelCheckpoint(monitor='val_acc', filepath=filepath, verbose=1, save_best_only=False)
+        checkpointer = ModelCheckpoint(monitor='val_acc', filepath=filepath, verbose=1, save_best_only=True)
+        progbar = TQDMCallback() # is actually interfering with displaying val_acc, so resorting to default progbar
+        callbacks = [checkpointer]
         inputs_train, queries_train, answers_train = self.vectorizer.vectorize_all('train')
 
         inputs_test, queries_test, answers_test = self.vectorizer.vectorize_all('test')
@@ -59,15 +61,15 @@ class StoryHandler:
                       batch_size=32,
                       epochs=epochs,
                       validation_data=([inputs_test, queries_test], answers_test),
-                      verbose=0, callbacks=[checkpointer, TQDMCallback()])
+                      verbose=1, callbacks=callbacks)
 
     def query(self, loop=False):
         query = input('Enter a query: ')
         queryvec = ve.vectorize_query(query)
         storyvec = ve.vectorizeaoeu_story(story)
         ans = dmn.query(storyvec, queryvec)
-        ans_word, conf = ve.devectorize_ans(ans)
-        print('Predicted answer:\n>> {} {:.1}%'.format(ans_word, conf*100))
+        ans_word, conf = ve.devectorize_ans(ans, show_conf=True)
+        print('Predicted answer:\n>> {} {:.1f}%'.format(ans_word, conf*100))
         statement = 'or q to drop back to menu >>> ' if loop else ''
         reply = input('Press enter to continue {}'.format(statement))
         print('_' * 30)
@@ -95,7 +97,7 @@ if __name__ == '__main__':
 
     ve = preprocess.BabiVectorizer(chalglenge_num=challenge)
     dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
-                            n_lstm=50)
+                            n_lstm=32)
 
     handler = StoryHandler(dmn, ve, modelfile)
     handler.load_model(modelfile, verbose=verbose)

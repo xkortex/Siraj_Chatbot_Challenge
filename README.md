@@ -26,6 +26,8 @@ Here are some improvements I made to the demo network:
 ### Bidirectional LSTM
 The single forward-pass LSTM was converted to bidirectional layer with the Bidirectional wrapper. Yuuuuuge improvement on double-context task - 84.7% after 260 epochs with single, improved to 90% after only 110 epochs with bidirectional. Nice! Asymptoted to 95% after about 150 epochs. The Single-context task got to 90% after 60 vs 85 epochs, modest improvement.  
 
+These are all accuracy numbers, not validation accuracy. Valacc is still falling a bit behind, so there is a fair amount of overfit going on. 
+
 ## Not-so-improvements
 ### Third LSTM layer
 Adding a forward pass after the bidirectional pair did not give improvements, in fact it caused the network to stall out around 55%. I've seen towers of LSTMs used to good effect in other NLP papers. Maybe they have some secret sauce I don't. 
