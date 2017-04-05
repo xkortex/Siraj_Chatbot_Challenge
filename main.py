@@ -93,7 +93,7 @@ if __name__ == '__main__':
     modelfile = os.path.normpath(modelfile)
     os.makedirs(os.path.dirname(modelfile), exist_ok=True)
 
-    ve = preprocess.BabiVectorizer(challenge_num=challenge)
+    ve = preprocess.BabiVectorizer(chalglenge_num=challenge)
     dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
                             n_lstm=50)
 
