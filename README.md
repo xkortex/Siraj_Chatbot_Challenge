@@ -11,8 +11,8 @@ Entry for machine learning tutorial [How to Make a Chatbot - Intro to Deep Learn
 
 ## Running 
 To run the command line interface, just type:
-`python main.py` 
-If this is the first time you are running the program, or you just created a new model, you'll have to train it first, which you can do directly from the menu. If you do not have any trained models yet, you can select `f` from the menu to fit the model. 
+`python main.py`.
+I have provided pretrained weights for the first model, challenge 1 (default location `./models/c1/dmn00.hdf5`). If this is the first time you are running the program with flags, or you just created a new model, you'll have to train it first, which you can do directly from the menu. If you do not have any trained models yet, you can select `f` from the menu to fit the model.
 
 ### Arguments
 - `-m {modelname}` - Set the name of the model and weight save file
