@@ -26,6 +26,9 @@ def set_arg_parser():
     parser.add_argument("-a", "--arch", type=int, choices=[1, 2], default=1,
                         help="Specify the model archetecture (DMN, ConvLSTM) {1|2}")
 
+    parser.add_argument("-b", "--batch_size", type=int, default=32,
+                        help="Batch size for training")
+
     return parser
 
 def query_model(query=None, model=None, vectorizer=None):
@@ -58,13 +61,13 @@ class StoryHandler:
             print('No model file [{}] found! Did you train the model yet?'.format(filename))
             print('~'*30)
 
-    def fit_model(self, epochs=1, verbose=True):
+    def fit_model(self, epochs=1, batch_size=32, verbose=True):
 
         # todo: Quitting with Ctrl-C causes CUDA to get stuck and leaves last program in gpumem.
         # todo: attach callbacks and configs to model class, not here
         # TF needs to exit cleanly
         epochs = int(epochs) # make sure this is an int, since it may be fed in as string arg
-        print('Fitting {} epochs'.format(epochs))
+        print('Fitting {} epochs, batch_size={}'.format(epochs, batch_size))
         filepath = self.modelfile
         modelname = os.path.splitext(os.path.basename(self.modelfile))[0]
         checkpointer = ModelCheckpoint(monitor='val_acc', filepath=filepath, verbose=1, save_best_only=True)
@@ -76,7 +79,7 @@ class StoryHandler:
 
         inputs_test, queries_test, answers_test = self.vectorizer.vectorize_all('test')
         dmn.model.fit([inputs_train, queries_train], answers_train,
-                      batch_size=32,
+                      batch_size=batch_size,
                       epochs=epochs,
                       validation_data=([inputs_test, queries_test], answers_test),
                       verbose=1, callbacks=callbacks)
@@ -139,7 +142,8 @@ if __name__ == '__main__':
                           ['3', 'arg test 100', menu.argPrint, {'foo': 100}]]
                          )
     menu_custom_epochs = menu.Choice('f', 'Fit for N epochs', callback=handler.fit_model,
-                                     userArg='epochs', userQuery='Enter number of epochs to fit: ')
+                                     userArg='epochs', userQuery='Enter number of epochs to fit: ',
+                                     batch_size=args.batch_size)
 
     menu_fit = menu.Menu('f', 'Fit the model',
                 [['1', 'Fit Model 1 epoch', handler.fit_model],

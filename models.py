@@ -99,7 +99,7 @@ class DeepMemNet(QueryableNet):
     """
     # todo: add performance logging
     def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True, tdd=True,
-                 matchconv=False, permute=False):
+                 batch_size=None, matchconv=False, permute=False):
         """
         DeepMemNet
 
@@ -208,7 +208,7 @@ class DeepMemNet(QueryableNet):
 
 class ConvoLSTM(QueryableNet):
     def __init__(self, vocab_size=22, story_maxlen=68, query_maxlen=4, n_lstm=32, bidirect=True, tdd=True,
-                 matchconv=False, permute=False):
+                 batch_size=None, matchconv=False, permute=False):
         super().__init__(vocab_size=vocab_size, story_maxlen=story_maxlen, query_maxlen=query_maxlen)
 
         dropout_rate = 0.2
