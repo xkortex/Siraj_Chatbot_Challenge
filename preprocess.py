@@ -56,6 +56,8 @@ def matchnocase(word, vocab):
     :param word: Word to try to match
     :param vocab: Valid vocabulary
     :return:
+    >>> matchnocase('mary', {'Alice', 'Bob', 'Mary'})
+    'Mary'
     """
     lword = word.lower()
     listvocab = list(vocab) # this trick catches dict and set in addition to list
@@ -72,6 +74,8 @@ def softmatch(word, vocab, lower=True, cutoff=2.):
     :param vocab: Valid vocabulary
     :param cutoff: Maximum distance (exclusive) to return match
     :return: Corrected word
+    >>> softmatch('mbry', {'Alice', 'Bob', 'Mary'})
+    'Mary'
     """
     listvocab = list(vocab)
     vw = charvectorize(word)
@@ -149,6 +153,13 @@ class BabiVectorizer:
     }
     lookup_challenge = {1:'single_supporting_fact_10k', 2: 'two_supporting_facts_10k' }
     def __init__(self, challenge_num=1):
+        """
+        Word Vectorizer for for Babi Dataset. Handles loading data, parsing, converting to int index, maintaining the
+        vocabulary, and converting back from vectors to sentences.
+        :param challenge_num: {1|2} Specify the challenge which to load.
+                1 = One supporting fact
+                2 = Two supporting facts
+        """
         try:
             path = get_file('babi-tasks-v1-2.tar.gz',
                             origin='https://s3.amazonaws.com/text-datasets/babi_tasks_1-20_v1-2.tar.gz')
