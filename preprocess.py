@@ -12,6 +12,7 @@ References:
 from functools import reduce
 import tarfile
 import re
+import glob
 import numpy as np
 import pandas as pd
 
@@ -28,6 +29,15 @@ def charvectorize(word, lower=True, setsize=128):
     :param lower: Render word lowercase first before vectorizing
     :param setsize: Size of character set
     :return:
+    >>> charvectorize('Mary')
+    array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+       0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+
+
     """
     if lower:
         word = word.lower()
@@ -43,7 +53,13 @@ def dist(v1, v2):
     :param v1: Vector
     :param v2: Vector or list of vectors
     :return:
+    >>> dist(0.5, 0.25)
+    0.25
+    >>> dist((.5, .6, .7), (.3, .3, .3))
+    0.53851648071345037
     """
+    v1 = np.array(v1)
+    v2 = np.array(v2)
     dv = v2 - v1
     dv = dv ** 2
     dv = np.sum(dv, axis=-1)
@@ -80,12 +96,11 @@ def softmatch(word, vocab, lower=True, cutoff=2.):
     listvocab = list(vocab)
     vw = charvectorize(word)
     vecs = np.array([charvectorize(w, lower=lower) for w in listvocab])
-    print(vecs.shape)
     distances = dist(vw, vecs)
     idx = np.argmin(distances)
     confidence = distances[idx]
     if confidence < cutoff:
-        return vocab[idx]
+        return listvocab[idx]
     return None
 
 def tokenize(sent):
@@ -97,10 +112,14 @@ def tokenize(sent):
 
 
 def parse_stories(lines, only_supporting=False):
-    '''Parse stories provided in the bAbi tasks format
+    """
+    Parse stories provided in the bAbi tasks format
     If only_supporting is true, only the sentences
     that support the answer are kept.
-    '''
+    :param lines:
+    :param only_supporting:
+    :return:
+    """
     data = []
     story = []
     for line in lines:
@@ -129,12 +148,17 @@ def parse_stories(lines, only_supporting=False):
 
 
 def get_stories(f, only_supporting=False, max_length=None):
-    '''Given a file name, read the file,
+    """
+    Given a file name, read the file,
     retrieve the stories,
     and then convert the sentences into a single story.
     If max_length is supplied,
     any stories longer than max_length tokens will be discarded.
-    '''
+    :param f: file
+    :param only_supporting:
+    :param max_length:
+    :return:
+    """
     data = parse_stories(f.readlines(), only_supporting=only_supporting)
     flatten = lambda data: reduce(lambda x, y: x + y, data)
     data = [(flatten(story), q, answer) for story, q, answer in data if not max_length or len(flatten(story)) < max_length]
@@ -145,12 +169,37 @@ class BabiVectorizer:
     allow_case_insensitive = True
     allow_softmatch = False
     ignore_keyerror = True
-    challenges = {
-        # QA1 with 10,000 samples
-        'single_supporting_fact_10k': 'tasks_1-20_v1-2/en-10k/qa1_single-supporting-fact_{}.txt',
-        # QA2 with 10,000 samples
-        'two_supporting_facts_10k': 'tasks_1-20_v1-2/en-10k/qa2_two-supporting-facts_{}.txt',
-    }
+    basedir = 'tasks_1-20_v1-2/en-10k/'
+    challenge_files = glob.glob(basedir + 'qa*.txt')
+    # challenges = {
+    #     # QA1 with 10,000 samples
+    #     'single_supporting_fact_10k': 'tasks_1-20_v1-2/en-10k/qa1_single-supporting-fact_{}.txt',
+    #     # QA2 with 10,000 samples
+    #     'two_supporting_facts_10k': 'tasks_1-20_v1-2/en-10k/qa2_two-supporting-facts_{}.txt',
+    # }
+    challenges =    {1: '{}qa1_single-supporting-fact_{}.txt',
+                     2: '{}qa2_two-supporting-facts_{}.txt',
+                     3: '{}qa3_three-supporting-facts_{}.txt',
+                     4: '{}qa4_two-arg-relations_{}.txt',
+                     5: '{}qa5_three-arg-relations_{}.txt',
+                     6: '{}qa6_yes-no-questions_{}.txt',
+                     7: '{}qa7_counting_{}.txt',
+                     8: '{}qa8_lists-sets_{}.txt',
+                     9: '{}qa9_simple-negation_{}.txt',
+                     10: '{}qa10_indefinite-knowledge_{}.txt',
+                     11: '{}qa11_basic-coreference_{}.txt',
+                     12: '{}qa12_conjunction_{}.txt',
+                     13: '{}qa13_compound-coreference_{}.txt',
+                     14: '{}qa14_time-reasoning_{}.txt',
+                     15: '{}qa15_basic-deduction_{}.txt',
+                     16: '{}qa16_basic-induction_{}.txt',
+                     17: '{}qa17_positional-reasoning_{}.txt',
+                     18: '{}qa18_size-reasoning_{}.txt',
+                     19: '{}qa19_path-finding_{}.txt',
+                     20: '{}qa20_agents-motivations_{}.txt'}
+
+
+
     lookup_challenge = {1:'single_supporting_fact_10k', 2: 'two_supporting_facts_10k' }
     def __init__(self, challenge_num=1):
         """
@@ -170,9 +219,10 @@ class BabiVectorizer:
             raise
         tar = tarfile.open(path)
 
-        challenge = self.challenges[self.lookup_challenge[challenge_num]]
-        train_records = get_stories(tar.extractfile(challenge.format('train')))
-        test_records = get_stories(tar.extractfile(challenge.format('test')))
+        challenge = self.challenges[challenge_num]
+        print('Loading: {}'.format(challenge))
+        train_records = get_stories(tar.extractfile(challenge.format(self.basedir, 'train')))
+        test_records = get_stories(tar.extractfile(challenge.format(self.basedir, 'test')))
 
         vocab = set()
         for story, q, answer in train_records + test_records:
@@ -204,6 +254,13 @@ class BabiVectorizer:
         self.answers = answers
 
     def deindex_sentence(self, ary, prettify=True):
+        """
+        Take a list of ints and return a sentence of words
+        :param ary: array-like, List of ints (vectorized sentence)
+        :param prettify: Clean up the sentence, e.g. trim extra spaces, add line breaks
+        :return: Sentence
+        :rtype: str
+        """
         sentence = []
         for scalar in ary:
             try:
@@ -219,6 +276,12 @@ class BabiVectorizer:
         return sentence
 
     def vectorize_all(self, datatype='train'):
+        """
+        Vectorize all items in the dataset
+        :param datatype: {'train'|'test'} specify the dataset to use
+        :return: (stories, queries, answers) each is a numpy array
+        :rtype: tuple
+        """
         if datatype == 'train':
             data = self.train_records
         elif datatype == 'test':
@@ -243,10 +306,23 @@ class BabiVectorizer:
 
 
     def vectorize_story(self, story):
+        """
+        Take a "story" and convert it to a sequence of ints using the vocab list
+        :param story:
+        :type story: list
+        :return: list of ints
+        """
         story = [self[w] for w in story]
         return pad_sequences([story], maxlen=self.story_maxlen) # note: this expects a sequence
 
     def vectorize_query(self, query, verbose=False):
+        """
+        Take a query as a sentence string and return the vector in int-list form
+        :param query:
+        :type query: str
+        :param verbose:
+        :return: list of ints
+        """
         query = query.replace('?', ' ?')
         query = query.split(' ')
         exclude = ['', ' ']
@@ -257,6 +333,12 @@ class BabiVectorizer:
         return queryvec
 
     def devectorize_ans(self, ansvec, show_conf=False):
+        """
+        Take a vector from NN answer and convert it back to word form
+        :param ansvec: n-dim vector, n=vocab size
+        :param show_conf: print out the confidence of the top few potential matches
+        :return:
+        """
         idx = np.argmax(ansvec)
         if show_conf:
             conf = list(ansvec.ravel())
@@ -330,20 +412,3 @@ class BabiVectorizer:
         else:
             raise KeyError('Value not found in lookup: {}'.format(item))
 
-
-
-def vectorize_stories(data, word_idx, story_maxlen, query_maxlen):
-    X = []
-    Xq = []
-    Y = []
-    for story, query, answer in data:
-        x = [word_idx[w] for w in story]
-        xq = [word_idx[w] for w in query]
-        # let's not forget that index 0 is reserved
-        y = np.zeros(len(word_idx) + 1)
-        y[word_idx[answer]] = 1
-        X.append(x)
-        Xq.append(xq)
-        Y.append(y)
-    return (pad_sequences(X, maxlen=story_maxlen),
-            pad_sequences(Xq, maxlen=query_maxlen), np.array(Y))

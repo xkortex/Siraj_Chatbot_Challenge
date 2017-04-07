@@ -12,7 +12,7 @@ import menu
 import models
 import preprocess
 
-
+legend_challenges = {1: 'bAbI One Supporting Fact', 2: 'bAbi Two Supporting Facts'}
 
 
 def set_arg_parser():
@@ -21,7 +21,7 @@ def set_arg_parser():
                     help="output verbosity")
     parser.add_argument("-m", "--model", type=str, default='dmn00.hdf5',
                         help="Specify a specific model file")
-    parser.add_argument("-c", "--challenge", type=int, choices=[1, 2], default=1,
+    parser.add_argument("-c", "--challenge", type=int, choices=range(1,21), default=1,
                         help="Specify the challenge type (supporting facts) {1|2}")
     parser.add_argument("-a", "--arch", type=int, choices=[1, 2], default=1,
                         help="Specify the model archetecture (DMN, ConvLSTM) {1|2}")
@@ -123,6 +123,7 @@ if __name__ == '__main__':
 
 
     ve = preprocess.BabiVectorizer(challenge_num=challenge)
+
     if args.arch == 2:
         dmn = models.ConvoLSTM(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
                                 n_lstm=32, bidirect=bidirect, tdd=False)
@@ -131,8 +132,11 @@ if __name__ == '__main__':
         dmn = models.DeepMemNet(vocab_size=ve.vocab_size, story_maxlen=ve.story_maxlen, query_maxlen=ve.query_maxlen,
                                 n_lstm=32, bidirect=bidirect, tdd=tdd)
 
-    print('Challenge: {}\nBidirect: {}\nTDD: {}\nNum LSTM: {}\nVocab Size: {}\nQuery Maxlen: {}'
-          .format(challenge, bidirect, tdd, n_lstm, ve.vocab_size, ve.query_maxlen))
+    print('Challenge: {} ({})\nBidirect: {}\nTDD: {}\nNum LSTM: {}\nVocab Size: {}\nQuery Maxlen: {}'
+          .format(challenge, ve.challenges[challenge].format('',''), bidirect, tdd, n_lstm,
+                  ve.vocab_size, ve.query_maxlen))
+    print('This challenge has a limited vocabulary. These are the acceptable words. '
+          'Case is insensitive. \n{}'.format(ve.vocab))
     handler = StoryHandler(dmn, ve, modelfile)
     handler.load_model(modelfile, verbose=verbose)
 
