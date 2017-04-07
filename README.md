@@ -16,7 +16,7 @@ If this is the first time you are running the program, or you just created a new
 
 ### Arguments
 - `-m {modelname}` - Set the name of the model and weight save file
-- `-c {N}` - Run challenge mode N. `1` is Single context bAbI, `2` is Double context bAbI
+- `-c {N}` - Run challenge mode N. `1` is Single context bAbI, `2` is Double context bAbI. You can now select from any of the [20 bAbI Q/A tasks](https://research.fb.com/downloads/babi/)!
 - `-a {N}`- Run architecture N. `1` is bAbI DMN, `2` a more conventional convolutional LSTM (warning: hard on memory)
 - `-v` - Verbose flag
 
