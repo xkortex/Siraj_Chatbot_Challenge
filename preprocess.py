@@ -248,7 +248,7 @@ class BabiVectorizer:
 
         self._train_records = train_records
         self._test_records = test_records
-        self._lookup = {**word_idx} # deal with null cases if necessary
+        self._lookup = dict(word_idx) # deal with null cases if necessary
 
         self.stories = stories
         self.answers = answers
