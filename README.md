@@ -45,8 +45,6 @@ The single forward-pass LSTM was converted to bidirectional layer with the Bidir
 ### Time-Distributed Dense
 Adding a TDD layer before the LSTM gave an additional jump in terms of training time and overall accuracy, reaching 95% valacc after 65 epochs on single-context (with default 32 nodes).
 
-These are all accuracy numbers, not validation accuracy. Valacc is still falling a bit behind, so there is a fair amount of overfit going on. 
-
 ## Not-so-improvements
 ### Conv1D in the Match layer
 Who doesn't love convo layers? Hoping to get better context recognition, I put a convolayer after the Match dot product part of the network. It didn't hurt the performance, but it didn't give the gains in the Challenge 2 I was looking for.
