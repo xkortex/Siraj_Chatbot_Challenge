@@ -3,9 +3,10 @@ Entry for machine learning tutorial [How to Make a Chatbot - Intro to Deep Learn
 
 
 ### Dependencies
-- pandas - Needed for some data sorting operations
-- keras - Deep learning FTW
-- tensorflow - My preferred Keras backend. Tensorboard is now integrated, so it'll need some tweaking to be Theano-compatible again 
+- python (>=3.5) - Developed on 3.5. Untested on 2.7, 3.4 or 3.6, but ought to work on v. >=3.5
+- pandas (>=0.19) Needed for some data sorting operations
+- keras (2.0.2/2.0.3) - Deep learning FTW
+- tensorflow (1.0.1) - My preferred Keras backend. Tensorboard is now integrated, so it'll need some tweaking to be Theano-compatible again 
 - h5py - for model checkpointing and saving weights
 - keras-tqdm - because my Jupyter notebooks freezes on the default Keras progbar. Also, it's awesome.
 
